@@ -73,6 +73,12 @@ def tree_get_params(df_dict, build_graph=False):
 
 
 def make_model(df_dict, optimal_alpha):
+    """
+    Обучить модель и получить предсказание.
+    :param df_dict: словарь с train, val, test выборками
+    :param optimal_alpha: оптимальное альфа, вычисленное ранее
+    :return: массив предсказанных значений для валидационной выборки
+    """
     X_train, y_train = df_dict['train']
     X_val, y_val = df_dict['val']
 
@@ -83,16 +89,56 @@ def make_model(df_dict, optimal_alpha):
 
 
 def evaluate_model(df_dict, y_pred):
+    """
+    :param df_dict: словарь с train, val, test выборками
+    :param y_pred: массив предсказанных значений для валидационной выборки
+    :return: значение roc-auc метрики
+    """
     X_val, y_val = df_dict['val']
     roc_auc = roc_auc_score(y_val, y_pred)
     return roc_auc
 
 
+def compare_cpp_alphas(df, n):
+    """
+    Сравнивает альфа, полученную в результате исследования выше, и дефолтную нулевую.
+    :param df: dataframe from file
+    :param n: number of experiments
+    :return: доля экспериментов, в которых альфа из эксперимента лучше, чем дефолтная, количество таких случаев,
+            лучшее значение метрики roc_auc за все эксперименты в каждом случае
+    """
+    res = []
+    roc_auc_exp_list = []
+    roc_auc_default_list = []
+    for i in range(n):
+        df_dict = split_data(df)
+        optimal_alpha = tree_get_params(df_dict, build_graph=False)
+
+        y_pred_exp = make_model(df_dict, optimal_alpha)
+        y_pred_default = make_model(df_dict, optimal_alpha=0)
+
+        roc_auc_exp = evaluate_model(df_dict, y_pred_exp)
+        roc_auc_default = evaluate_model(df_dict, y_pred_default)
+        roc_auc_default_list.append(roc_auc_default)
+        roc_auc_exp_list.append(roc_auc_exp)
+
+        res.append(1 if roc_auc_exp > roc_auc_default else 0)
+
+    max_roc_auc_exp = max(roc_auc_exp_list)
+    max_roc_auc_def = max(roc_auc_default_list)
+
+    return sum(res)/n, sum(res), max_roc_auc_exp, max_roc_auc_def
+
+
+
 path_input = r'C:\Users\pavlu\PycharmProjects\A-Statistical-Analysis-ML-workflow-of-Titanic\data\prepared_train.csv'
 df = read_data(path_input)
-df_dict = split_data(df)
-optimal_alpha = tree_get_params(df_dict, build_graph=False)
-y_pred = make_model(df_dict, optimal_alpha)
-roc_auc = evaluate_model(df_dict, y_pred)
+fraction, n_of_exp_wins, max_roc_auc_exp, max_roc_auc_def = compare_cpp_alphas(df, n=15)
 
-print(roc_auc) # 0.8293650
+print(fraction, n_of_exp_wins)
+print(f"max exp roc_auc: {max_roc_auc_exp}, max default roc_auc: {max_roc_auc_def}")
+"""
+для 15 экспериментов:
+0.9333333333333333 14
+max exp roc_auc: 0.891330, max default roc_auc: 0.87210
+"""
