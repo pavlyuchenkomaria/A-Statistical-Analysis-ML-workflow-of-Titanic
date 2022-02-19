@@ -59,13 +59,3 @@ path_input = r'C:\Users\pavlu\PycharmProjects\A-Statistical-Analysis-ML-workflow
 df = read_data(path_input)
 df_dict = split_data(df)
 max_roc_auc, best_n_estimators_value = choose_best_model_params(df_dict)
-
-print(max_roc_auc, best_n_estimators_value)
-
-"""
-0.8196594427244581 50
-0.8376623376623378 50
-0.7886904761904762 50
-check parameter:
-best_n_estimators_value = 50
-"""
