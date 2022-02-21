@@ -20,7 +20,7 @@ def split_data(df):
     :param df: датафрейм
     :return: словарь с train, val, test выборками
     """
-    X = df[['Fare', 'Age', 'Pclass', 'Female', 'Male']]
+    X = df[['ScaledFare', 'ScaledAge', 'Pclass_1', 'Pclass_2', 'Pclass_3', 'Female', 'Male']]
     y = df['Survived']
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
     X_val, X_test, y_val, y_test = train_test_split(X_test, y_test, test_size=0.5)
@@ -34,11 +34,10 @@ def split_data(df):
 
 def choose_best_k(df, scoring, build_graph=False):
     """
-
     :param df: датафрейм
     :param scoring: метрика
     :param build_graph: логическое значение: строить ли график
-    :return:
+    :return: оптимальное k и график
     """
     X = df[['Fare', 'Age', 'Pclass', 'Female', 'Male']]
     y = df['Survived']
