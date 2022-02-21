@@ -1,11 +1,9 @@
 import statistics
-
-from sklearn.ensemble import AdaBoostClassifier
+from matplotlib import pyplot as plt
+from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score
 import pandas as pd
-from matplotlib import pyplot as plt
-
 
 
 def read_data(path_input):
@@ -37,18 +35,17 @@ def split_data(df):
 
 def get_best_n_estimators_value(df_dict):
     """
-    Обучить модель и получить предсказание.
+    Выбрать оптимальное число n_estimators.
     :param df_dict: словарь с train, val, test выборками
-    :param optimal_alpha: оптимальное альфа, вычисленное ранее
-    :return: массив предсказанных значений для валидационной выборки
+    :return: максимальное значение метрики и параметр n_estimators, который дал это значение метрики
     """
     X_train, y_train = df_dict['train']
     X_val, y_val = df_dict['val']
 
     roc_auc_list = []
     ix_list = []
-    for n in [50, 150, 200]:
-        clf = AdaBoostClassifier(n_estimators=n)
+    for n in range(25, 300, 25):
+        clf = GradientBoostingClassifier(n_estimators=n)
         clf.fit(X_train, y_train)
         y_pred = clf.predict(X_val)
         roc_auc = roc_auc_score(y_val, y_pred)
@@ -70,20 +67,24 @@ def choose_best_model_params(df, n=20, build_hist=False, build_plot=False):
     """
     best_n_estimators_values = []
     max_roc_auc_list = []
+
     for i in range(n):
         df_dict = split_data(df)
         max_roc_auc, best_n_estimators_value = get_best_n_estimators_value(df_dict)
         max_roc_auc_list.append(max_roc_auc)
         best_n_estimators_values.append(best_n_estimators_value)
+
     if build_hist:
         plt.figure(figsize=(10, 6))
         plt.hist(best_n_estimators_values)
         plt.show()
+
     if build_plot:
         x = [i for i in range(1, n+1)]
         plt.figure(figsize=(10, 6))
         plt.plot(x, max_roc_auc_list)
         plt.show()
+
     return statistics.mode(best_n_estimators_values)
 
 

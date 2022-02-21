@@ -1,0 +1,4 @@
+adaboost: best n_estimators_value = 125
+gradientboost: best n_estimators_value = 125
+decision tree: in 14 of 15 experiments best was experimental cpp_alpha, 0.001986268081320637
+knn: 11 neighbours

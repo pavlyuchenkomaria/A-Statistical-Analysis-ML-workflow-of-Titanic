@@ -65,7 +65,7 @@ def tree_get_params(df_dict, build_graph=False):
         plt.figure(figsize=(10, 6))
         plt.grid()
         plt.plot(ccp_alphas[:-1], acc_scores[:-1])
-        plt.xlabel("effective alpha")
+        plt.xlabel("Effective alpha")
         plt.ylabel("Accuracy scores")
         plt.show()
 
