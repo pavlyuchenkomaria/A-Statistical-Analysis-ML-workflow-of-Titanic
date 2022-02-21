@@ -18,20 +18,18 @@ def read_data(path_input):
     return df
 
 
-def collect_data(df):
+def collect_data(df_train):
     """
     Делит данные на выборки.
     :param df: датафрейм
     :return: словарь с train, val, test выборками
     """
-    X = df[['ScaledFare', 'ScaledAge', 'Pclass_1', 'Pclass_2', 'Pclass_3', 'Female', 'Male']]
-    y = df['Survived']
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
-    X_val, X_test, y_val, y_test = train_test_split(X_test, y_test, test_size=0.5)
+    X = df_train[['ScaledFare', 'ScaledAge', 'Pclass_1', 'Pclass_2', 'Pclass_3', 'Female', 'Male']]
+    y = df_train['Survived']
+    X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2)
     df_dict = {
         'train': (X_train, y_train),
-        'val': (X_val, y_val),
-        'test': (X_test, y_test)
+        'val': (X_val, y_val)
     }
     return df_dict
 
@@ -145,91 +143,58 @@ def get_best_n_estimators_value(df_dict, metric, classifier, build_graph=False):
     return best_n_estimators_value
 
 
-def compare_classifier(df_dict, metric=roc_auc_score, max_n=30):
+def make_prediction(df_dict, df_test, metric=roc_auc_score, max_n=30):
     """
-    Сравнить классификаторы и вариации их ансамбля для разных типов голосования на test выборке.
-    :param df_dict: словарь с train, val, test выборками
+    Сделать предсказание на тесте.
+    :param df_dict: словарь с train, val выборками
+    :param df_test: тестовая выборка без целевого столбца
     :param metric: метрика
     :param max_n: максимальное количество возможных соседей для Knn
-    :return: результаты классификаторов и их ансамбля
+    :return: датафрейм с предсказанием
     """
     X_train, y_train = df_dict['train']
-    X_test, y_test = df_dict['test']
 
     optimal_alpha = tree_get_params(df_dict, metric, build_graph=False)
     clf_DS = DecisionTreeClassifier(criterion='gini', ccp_alpha=optimal_alpha, max_depth=10)
     clf_DS.fit(X_train, y_train)
-    y_pred_DS = clf_DS.predict(X_test)
 
     optimal_k = choose_best_k(df_dict, max_n, metric, build_graph=False)
     clf_KNN = KNeighborsClassifier(n_neighbors=optimal_k, algorithm='kd_tree', weights='distance')
     clf_KNN.fit(X_train, y_train)
-    y_pred_KNN = clf_KNN.predict(X_test)
 
     clf_SVC = LinearSVC()
     clf_SVC.fit(X_train, y_train)
-    y_pred_SVC = clf_SVC.predict(X_test)
 
     n_estimators_adaboost = get_best_n_estimators_value(df_dict, metric, AdaBoostClassifier, build_graph=False)
     clf_ADABOOST = AdaBoostClassifier(n_estimators=n_estimators_adaboost)
     clf_ADABOOST.fit(X_train, y_train)
-    y_pred_ADABOOST = clf_ADABOOST.predict(X_test)
 
     n_estimators_gradientboost = get_best_n_estimators_value(df_dict, metric, GradientBoostingClassifier,
                                                             build_graph=False)
     clf_GRADIENTBOOST = GradientBoostingClassifier(n_estimators=n_estimators_gradientboost)
     clf_GRADIENTBOOST.fit(X_train, y_train)
-    y_pred_GRADIENTBOOST = clf_GRADIENTBOOST.predict(X_test)
-
-    ensemble_dtree_knn_soft = VotingClassifier(estimators=[('dtree', clf_DS), ('knn', clf_KNN)], voting='soft')
-    ensemble_dtree_knn_soft.fit(X_train, y_train)
-    y_pred_ensemble_dtree_knn_soft = ensemble_dtree_knn_soft.predict(X_test)
-
-    ensemble_dtree_knn_svc_hard = VotingClassifier(estimators=[('dtree', clf_DS), ('knn', clf_KNN), ('svc', clf_SVC)],
-                                                   voting='hard')
-    ensemble_dtree_knn_svc_hard.fit(X_train, y_train)
-    y_pred_ensemble_dtree_knn_svc_hard = ensemble_dtree_knn_svc_hard.predict(X_test)
-
-    ensemble_boosters_soft = VotingClassifier(
-        estimators=[('adaboost', clf_ADABOOST), ('gradientboost', clf_GRADIENTBOOST)], voting='soft')
-    ensemble_boosters_soft.fit(X_train, y_train)
-    y_pred_ensemble_boosters_soft = ensemble_boosters_soft.predict(X_test)
-
-    ensemble_all_soft = VotingClassifier(
-        estimators=[('dtree', clf_DS), ('knn', clf_KNN), ('adaboost', clf_ADABOOST),
-                    ('gradientboost', clf_GRADIENTBOOST)],
-        voting='soft')
-    ensemble_all_soft.fit(X_train, y_train)
-    y_pred_ensemble_all_soft = ensemble_all_soft.predict(X_test)
 
     ensemble_all_hard = VotingClassifier(
         estimators=[('dtree', clf_DS), ('knn', clf_KNN), ('svc', clf_SVC), ('adaboost', clf_ADABOOST),
                     ('gradientboost', clf_GRADIENTBOOST)],
         voting='hard')
     ensemble_all_hard.fit(X_train, y_train)
+
+    X_test = df_test[['ScaledFare', 'ScaledAge', 'Pclass_1', 'Pclass_2', 'Pclass_3', 'Female', 'Male']]
     y_pred_ensemble_all_hard = ensemble_all_hard.predict(X_test)
+    df_test["Survived"] = y_pred_ensemble_all_hard
 
-    scores = []
-    estimators_predictions = [y_pred_DS, y_pred_KNN, y_pred_SVC, y_pred_ADABOOST, y_pred_GRADIENTBOOST,
-                              y_pred_ensemble_dtree_knn_soft, y_pred_ensemble_dtree_knn_svc_hard,
-                              y_pred_ensemble_boosters_soft, y_pred_ensemble_all_hard, y_pred_ensemble_all_soft]
-    estimators_names = ['DecisionTreeClassifier', 'KNeighborsClassifier', 'LinearSVC', 'AdaBoost', 'GradientBoost',
-                           'y_pred_ensemble_dtree_knn_soft', 'y_pred_ensemble_dtree_knn_svc_hard',
-                           'y_pred_ensemble_boosters_soft', 'y_pred_ensemble_all_hard', 'y_pred_ensemble_all_soft']
-    for y_pred, label in zip(estimators_predictions, estimators_names):
-        score = metric(y_test, y_pred)
-        scores.append(score)
-        print(f"{metric.__name__}: {score},  clf: {label}")
-
-    max_score = max(scores)
-    best_clf_name = estimators_names[scores.index(max_score)]
-    print(f"for {metric.__name__}: best score is {max_score},  best clf: {best_clf_name} \n")
-    return max_score, best_clf_name
+    return df_test[["PassengerId", "Survived"]]
 
 
-path_input = r'C:\Users\pavlu\PycharmProjects\A-Statistical-Analysis-ML-workflow-of-Titanic\data\prepared_train.csv'
-df = read_data(path_input)
-df_dict = collect_data(df)
-compare_classifier(df_dict, metric=roc_auc_score, max_n=30)
-compare_classifier(df_dict, metric=accuracy_score, max_n=30)
-compare_classifier(df_dict, metric=f1_score, max_n=30)
+path_input_train = r'C:\Users\pavlu\PycharmProjects\A-Statistical-Analysis-ML-workflow-of-Titanic\data\prepared_train.csv'
+path_input_test = r'C:\Users\pavlu\PycharmProjects\A-Statistical-Analysis-ML-workflow-of-Titanic\data\prepared_test.csv'
+df_train = read_data(path_input_train)
+df_test = read_data(path_input_test)[['PassengerId', 'ScaledFare', 'ScaledAge', 'Pclass_1', 'Pclass_2', 'Pclass_3', 'Female', 'Male']]
+
+
+df_dict = collect_data(df_train)
+result_df = make_prediction(df_dict, df_test, metric=roc_auc_score, max_n=30)
+result_df.to_csv(
+    path_or_buf=r'C:\Users\pavlu\PycharmProjects\A-Statistical-Analysis-ML-workflow-of-Titanic\data\prediction.csv',
+    index=False)
