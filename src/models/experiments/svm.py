@@ -1,3 +1,4 @@
+import os
 from sklearn.svm import LinearSVC
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score
@@ -57,8 +58,9 @@ def evaluate_model(df_dict, y_pred):
     return roc_auc
 
 
-path_input = r'C:\Users\pavlu\PycharmProjects\A-Statistical-Analysis-ML-workflow-of-Titanic\data\prepared_train.csv'
-df = read_data(path_input)
+dirname = os.path.dirname(__file__)
+filename = os.path.join(dirname, r'..\..\..\data\prepared_train.csv')
+df = read_data(filename)
 df_dict = split_data(df)
 y_pred = make_model(df_dict)
 roc_auc = evaluate_model(df_dict, y_pred)

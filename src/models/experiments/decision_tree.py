@@ -1,3 +1,4 @@
+import os
 from matplotlib import pyplot as plt
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import train_test_split
@@ -130,6 +131,7 @@ def compare_cpp_alphas(df, n):
     return sum(res)/n, sum(res), max_roc_auc_exp, max_roc_auc_def
 
 
-path_input = r'C:\Users\pavlu\PycharmProjects\A-Statistical-Analysis-ML-workflow-of-Titanic\data\prepared_train.csv'
-df = read_data(path_input)
+dirname = os.path.dirname(__file__)
+filename = os.path.join(dirname, r'..\..\..\data\prepared_train.csv')
+df = read_data(filename)
 fraction, n_of_exp_wins, max_roc_auc_exp, max_roc_auc_def = compare_cpp_alphas(df, n=15)

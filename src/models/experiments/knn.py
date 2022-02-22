@@ -1,3 +1,4 @@
+import os
 import statistics
 from matplotlib import pyplot as plt
 from sklearn.metrics import make_scorer, roc_auc_score
@@ -66,8 +67,9 @@ def choose_best_k(df_dict, n, metric, build_graph=False):
     return optimal_k
 
 
-path_input = r'C:\Users\pavlu\PycharmProjects\A-Statistical-Analysis-ML-workflow-of-Titanic\data\prepared_train.csv'
-df = read_data(path_input)
+dirname = os.path.dirname(__file__)
+filename = os.path.join(dirname, r'..\..\..\data\prepared_train.csv')
+df = read_data(filename)
 df_dict = split_data(df)
 choose_best_k(df_dict, n=30, metric=roc_auc_score, build_graph=False)
 

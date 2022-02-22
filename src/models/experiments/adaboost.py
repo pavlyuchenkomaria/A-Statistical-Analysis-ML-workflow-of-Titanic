@@ -1,3 +1,4 @@
+import os
 import statistics
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.model_selection import train_test_split
@@ -86,6 +87,7 @@ def choose_best_model_params(df, n=20, build_hist=False, build_plot=False):
     return statistics.mode(best_n_estimators_values)
 
 
-path_input = r'C:\Users\pavlu\PycharmProjects\A-Statistical-Analysis-ML-workflow-of-Titanic\data\prepared_train.csv'
-df = read_data(path_input)
+dirname = os.path.dirname(__file__)
+filename = os.path.join(dirname, r'..\..\..\data\prepared_train.csv')
+df = read_data(filename)
 best_n_estimators_value = choose_best_model_params(df, n=40, build_hist=True, build_plot=True)

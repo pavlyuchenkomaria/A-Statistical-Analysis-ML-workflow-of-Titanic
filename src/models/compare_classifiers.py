@@ -1,3 +1,4 @@
+import os
 import statistics
 import pandas as pd
 from matplotlib import pyplot as plt
@@ -227,8 +228,9 @@ def compare_classifier(df_dict, metric=roc_auc_score, max_n=30):
     return max_score, best_clf_name
 
 
-path_input = r'C:\Users\pavlu\PycharmProjects\A-Statistical-Analysis-ML-workflow-of-Titanic\data\prepared_train.csv'
-df = read_data(path_input)
+dirname = os.path.dirname(__file__)
+filename = os.path.join(dirname, r'..\..\data\prepared_train.csv')
+df = read_data(filename)
 df_dict = collect_data(df)
 compare_classifier(df_dict, metric=roc_auc_score, max_n=30)
 compare_classifier(df_dict, metric=accuracy_score, max_n=30)

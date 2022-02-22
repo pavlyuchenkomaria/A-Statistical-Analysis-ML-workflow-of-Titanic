@@ -3,6 +3,7 @@
 необходим scaling для age, fare и one-hot-encoding для pclass, sex.
 Будут оставлены столбцы: survived, sex, pclass, age, fare, name.
 """
+import os
 
 import pandas as pd
 import numpy as np
@@ -73,7 +74,11 @@ def prepare_data(path_read, path_write):
     df.to_csv(path_or_buf=path_write)
 
 
+dirname = os.path.dirname(__file__)
+filename_train = os.path.join(dirname, r'..\..\..\data\train.csv')
+filename_prepared_train = os.path.join(dirname, r'..\..\..\data\prepared_train.csv')
+
 prepare_data(
-    path_read=r'C:\Users\pavlu\PycharmProjects\A-Statistical-Analysis-ML-workflow-of-Titanic\data\train.csv',
-    path_write=r'C:\Users\pavlu\PycharmProjects\A-Statistical-Analysis-ML-workflow-of-Titanic\data\prepared_train.csv'
+    path_read=filename_train,
+    path_write=filename_prepared_train
 )

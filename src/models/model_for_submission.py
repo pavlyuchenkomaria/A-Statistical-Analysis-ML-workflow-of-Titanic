@@ -1,3 +1,4 @@
+import os
 import statistics
 import pandas as pd
 from matplotlib import pyplot as plt
@@ -187,14 +188,14 @@ def make_prediction(df_dict, df_test, metric=roc_auc_score, max_n=30):
     return df_test[["PassengerId", "Survived"]]
 
 
-path_input_train = r'C:\Users\pavlu\PycharmProjects\A-Statistical-Analysis-ML-workflow-of-Titanic\data\prepared_train.csv'
-path_input_test = r'C:\Users\pavlu\PycharmProjects\A-Statistical-Analysis-ML-workflow-of-Titanic\data\prepared_test.csv'
-df_train = read_data(path_input_train)
-df_test = read_data(path_input_test)[['PassengerId', 'ScaledFare', 'ScaledAge', 'Pclass_1', 'Pclass_2', 'Pclass_3', 'Female', 'Male']]
+dirname = os.path.dirname(__file__)
+filename_train = os.path.join(dirname, r'..\..\data\prepared_train.csv')
+filename_test = os.path.join(dirname, r'..\..\data\prepared_test.csv')
+filename_prediction = os.path.join(dirname, r'..\..\data\prediction.csv')
 
-
+df_train = read_data(filename_train)
+df_test = read_data(filename_test)[['PassengerId', 'ScaledFare', 'ScaledAge', 'Pclass_1', 'Pclass_2', 'Pclass_3',
+                                    'Female', 'Male']]
 df_dict = collect_data(df_train)
 result_df = make_prediction(df_dict, df_test, metric=roc_auc_score, max_n=30)
-result_df.to_csv(
-    path_or_buf=r'C:\Users\pavlu\PycharmProjects\A-Statistical-Analysis-ML-workflow-of-Titanic\data\prediction.csv',
-    index=False)
+result_df.to_csv(path_or_buf=filename_prediction, index=False)

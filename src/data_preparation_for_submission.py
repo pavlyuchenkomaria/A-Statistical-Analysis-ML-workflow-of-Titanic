@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 from sklearn import preprocessing
 
@@ -53,7 +54,11 @@ def prepare_data(path_read, path_write):
     df.to_csv(path_or_buf=path_write)
 
 
+dirname = os.path.dirname(__file__)
+filename_test = os.path.join(dirname, r'..\data\test.csv')
+filename_prepared_test = os.path.join(dirname, r'..\data\prepared_test.csv')
+
 prepare_data(
-    path_read=r'C:\Users\pavlu\PycharmProjects\A-Statistical-Analysis-ML-workflow-of-Titanic\data\test.csv',
-    path_write=r'C:\Users\pavlu\PycharmProjects\A-Statistical-Analysis-ML-workflow-of-Titanic\data\prepared_test.csv'
+    path_read=filename_test,
+    path_write=filename_prepared_test
 )
