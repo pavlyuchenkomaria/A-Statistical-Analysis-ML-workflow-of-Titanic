@@ -75,8 +75,8 @@ def prepare_data(path_read, path_write):
 
 
 dirname = os.path.dirname(__file__)
-filename_train = os.path.join(dirname, r'..\..\..\data\train.csv')
-filename_prepared_train = os.path.join(dirname, r'..\..\..\data\prepared_train.csv')
+filename_train = os.path.join(dirname, r'..\data\train.csv')
+filename_prepared_train = os.path.join(dirname, r'..\data\prepared_train.csv')
 
 prepare_data(
     path_read=filename_train,
