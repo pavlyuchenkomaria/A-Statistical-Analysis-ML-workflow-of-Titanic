@@ -25,7 +25,7 @@ def collect_data(df):
     :param df: датафрейм
     :return: словарь с train, val, test выборками
     """
-    X = df[['ScaledFare', 'ScaledAge', 'Pclass_1', 'Pclass_2', 'Pclass_3', 'Female', 'Male']]
+    X = df.drop(columns=['Survived'])
     y = df['Survived']
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
     X_val, X_test, y_val, y_test = train_test_split(X_test, y_test, test_size=0.5)
