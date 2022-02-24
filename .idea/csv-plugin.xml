@@ -24,6 +24,34 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="\data\prediction_ensemble_all_hard.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\data\prediction_ensemble_boosters_soft.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\data\prediction_gradientboost.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\data\prediction_result_df_ensemble_all_soft.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="\data\prepared_test.csv">
           <value>
             <Attribute>
