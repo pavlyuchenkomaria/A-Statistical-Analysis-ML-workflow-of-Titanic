@@ -30,6 +30,11 @@ def scale_data(df):
 
 
 def one_hot_encode_data(df):
+    """
+    Use OneHotEncoder for Pclass and Sex features.
+    :param df: dataframe
+    :return: transformed dataframe with OneHotEncoded "Pclass" and "Sex"
+    """
     enc = preprocessing.OneHotEncoder()
     enc_df_pclass = pd.DataFrame(enc.fit_transform(df[['Pclass']]).toarray(),
                                  columns=['Pclass_1', 'Pclass_2', 'Pclass_3'])
@@ -95,7 +100,7 @@ def get_features_for_test(df):
     :param df: dataframe
     :return: transformed dataframe with features
     """
-    return df[['Fare_cat', 'Age_cat', 'Parch_cat', 'SibSp_cat', 'Female', 'Male', 'Pclass_1', 'Pclass_2', 'Pclass_3',
+    return df[['PassengerId', 'Fare_cat', 'Age_cat', 'Parch_cat', 'SibSp_cat', 'Female', 'Male', 'Pclass_1', 'Pclass_2', 'Pclass_3',
                'ScaledFare', 'ScaledAge']]
 
 
@@ -106,7 +111,7 @@ def prepare_data_for_train(path_read, path_write):
     convert_number_to_cat(df)
     scale_data(df)
     df = one_hot_encode_data(df)
-    get_features_for_train(df).to_csv(path_or_buf=path_write)
+    get_features_for_train(df).to_csv(path_or_buf=path_write, index=False)
 
 
 def prepare_data_for_test(path_read, path_write):
@@ -116,7 +121,7 @@ def prepare_data_for_test(path_read, path_write):
     convert_number_to_cat(df)
     scale_data(df)
     df = one_hot_encode_data(df)
-    get_features_for_test(df).to_csv(path_or_buf=path_write)
+    get_features_for_test(df).to_csv(path_or_buf=path_write, index=False)
 
 
 dirname = os.path.dirname(__file__)

@@ -25,7 +25,7 @@ def collect_data(df_train):
     :param df: датафрейм
     :return: словарь с train, val, test выборками
     """
-    X = df_train[['ScaledFare', 'ScaledAge', 'Pclass_1', 'Pclass_2', 'Pclass_3', 'Female', 'Male']]
+    X = df_train.drop('Survived', axis=1)
     y = df_train['Survived']
     X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2)
     df_dict = {
@@ -144,16 +144,18 @@ def get_best_n_estimators_value(df_dict, metric, classifier, build_graph=False):
     return best_n_estimators_value
 
 
-def make_prediction(df_dict, df_test, metric=roc_auc_score, max_n=30):
+def make_prediction(df_dict, df_test, classifier, metric, max_n=30):
     """
     Сделать предсказание на тесте.
     :param df_dict: словарь с train, val выборками
     :param df_test: тестовая выборка без целевого столбца
+    :param classifier: выбранный способ классификации
     :param metric: метрика
     :param max_n: максимальное количество возможных соседей для Knn
     :return: датафрейм с предсказанием
     """
     X_train, y_train = df_dict['train']
+    X_test = df_test.drop("PassengerId", axis=1, inplace=False)
 
     optimal_alpha = tree_get_params(df_dict, metric, build_graph=False)
     clf_DS = DecisionTreeClassifier(criterion='gini', ccp_alpha=optimal_alpha, max_depth=10)
@@ -175,27 +177,72 @@ def make_prediction(df_dict, df_test, metric=roc_auc_score, max_n=30):
     clf_GRADIENTBOOST = GradientBoostingClassifier(n_estimators=n_estimators_gradientboost)
     clf_GRADIENTBOOST.fit(X_train, y_train)
 
-    ensemble_all_hard = VotingClassifier(
-        estimators=[('dtree', clf_DS), ('knn', clf_KNN), ('svc', clf_SVC), ('adaboost', clf_ADABOOST),
-                    ('gradientboost', clf_GRADIENTBOOST)],
-        voting='hard')
-    ensemble_all_hard.fit(X_train, y_train)
-
-    X_test = df_test[['ScaledFare', 'ScaledAge', 'Pclass_1', 'Pclass_2', 'Pclass_3', 'Female', 'Male']]
-    y_pred_ensemble_all_hard = ensemble_all_hard.predict(X_test)
-    df_test["Survived"] = y_pred_ensemble_all_hard
-
-    return df_test[["PassengerId", "Survived"]]
+    if classifier == 'adaboost':
+        y_pred_ADABOOST = clf_ADABOOST.predict(X_test)
+        df_test["Survived"] = y_pred_ADABOOST
+        df_test[["PassengerId", "Survived"]].to_csv(
+                                        path_or_buf=os.path.join(dirname, r'..\..\data\prediction_adaboost.csv'),
+                                        index=False)
+        df_test.drop('Survived', axis=1, inplace=True)
+    elif classifier == 'gradientboost':
+        y_pred_GRADIENTBOOST = clf_GRADIENTBOOST.predict(X_test)
+        df_test["Survived"] = y_pred_GRADIENTBOOST
+        df_test[["PassengerId", "Survived"]].to_csv(
+                                        path_or_buf=os.path.join(dirname, r'..\..\data\prediction_gradientboost.csv'),
+                                        index=False)
+        df_test.drop('Survived', axis=1, inplace=True)
+    elif classifier == 'ensemble_boosters_soft':
+        ensemble_boosters_soft = VotingClassifier(
+            estimators=[('adaboost', clf_ADABOOST), ('gradientboost', clf_GRADIENTBOOST)], voting='soft')
+        ensemble_boosters_soft.fit(X_train, y_train)
+        y_pred_ensemble_boosters_soft = ensemble_boosters_soft.predict(X_test)
+        df_test["Survived"] = y_pred_ensemble_boosters_soft
+        df_test[["PassengerId", "Survived"]].to_csv(
+                                path_or_buf=os.path.join(dirname, r'..\..\data\prediction_ensemble_boosters_soft.csv'),
+                                index=False)
+        df_test.drop('Survived', axis=1, inplace=True)
+    elif classifier == 'ensemble_all_soft':
+        ensemble_all_soft = VotingClassifier(
+            estimators=[('dtree', clf_DS), ('knn', clf_KNN), ('adaboost', clf_ADABOOST),
+                        ('gradientboost', clf_GRADIENTBOOST)],
+            voting='soft')
+        ensemble_all_soft.fit(X_train, y_train)
+        y_pred_ensemble_all_soft = ensemble_all_soft.predict(X_test)
+        df_test["Survived"] = y_pred_ensemble_all_soft
+        df_test[["PassengerId", "Survived"]].to_csv(
+                                    path_or_buf=os.path.join(dirname, r'..\..\data\prediction_result_df_ensemble_all_soft.csv'),
+                                    index=False)
+        df_test.drop('Survived', axis=1, inplace=True)
+    elif classifier == 'ensemble_all_hard':
+        ensemble_all_hard = VotingClassifier(
+            estimators=[('dtree', clf_DS), ('knn', clf_KNN), ('svc', clf_SVC), ('adaboost', clf_ADABOOST),
+                        ('gradientboost', clf_GRADIENTBOOST)],
+            voting='hard')
+        ensemble_all_hard.fit(X_train, y_train)
+        y_pred_ensemble_all_hard = ensemble_all_hard.predict(X_test)
+        df_test["Survived"] = y_pred_ensemble_all_hard
+        df_test[["PassengerId", "Survived"]].to_csv(
+                                    path_or_buf=os.path.join(dirname, r'..\..\data\prediction_ensemble_all_hard.csv'),
+                                    index=False)
+        df_test.drop('Survived', axis=1, inplace=True)
 
 
 dirname = os.path.dirname(__file__)
-filename_train = os.path.join(dirname, r'..\..\data\prepared_train.csv')
-filename_test = os.path.join(dirname, r'..\..\data\prepared_test.csv')
-filename_prediction = os.path.join(dirname, r'..\..\data\prediction.csv')
-
-df_train = read_data(filename_train)
-df_test = read_data(filename_test)[['PassengerId', 'ScaledFare', 'ScaledAge', 'Pclass_1', 'Pclass_2', 'Pclass_3',
-                                    'Female', 'Male']]
+filename_prepared_train = os.path.join(dirname, r'..\..\data\prepared_train.csv')
+filename_prepared_test = os.path.join(dirname, r'..\..\data\prepared_test.csv')
+df_train = read_data(filename_prepared_train)
+df_test = read_data(filename_prepared_test)
 df_dict = collect_data(df_train)
-result_df = make_prediction(df_dict, df_test, metric=roc_auc_score, max_n=30)
-result_df.to_csv(path_or_buf=filename_prediction, index=False)
+
+# adaboost
+make_prediction(df_dict, df_test, classifier='adaboost', metric=accuracy_score, max_n=30)
+# gradientboost
+make_prediction(df_dict, df_test, classifier='gradientboost', metric=accuracy_score, max_n=30)
+# ensemble_boosters_soft
+make_prediction(df_dict, df_test, classifier='ensemble_boosters_soft', metric=accuracy_score, max_n=30)
+# ensemble_all_soft
+make_prediction(df_dict, df_test, classifier='ensemble_all_soft', metric=accuracy_score, max_n=30)
+# ensemble_all_hard
+make_prediction(df_dict, df_test, classifier='ensemble_all_hard', metric=accuracy_score, max_n=30)
+
+
