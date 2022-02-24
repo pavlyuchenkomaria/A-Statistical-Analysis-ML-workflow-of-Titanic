@@ -4,7 +4,7 @@ Kaggle: https://www.kaggle.com/masumrumi/a-statistical-analysis-ml-workflow-of-t
 Данный проект представляет собой решение задачи классификации пассажиров Титаника на выживших и нет.
 
 Представление и анализ данных, а также выводы, полученные в процессе работы, и результаты различных 
-подходов к бинарной классификации представлены в jupyter notebook [data analysis and results of work](https://github.com/pavlyuchenkomaria/A-Statistical-Analysis-ML-workflow-of-Titanic/blob/000d904c585f85a8ca4a9aa0248e968f3e0c8734/data_analysis_and_results_of_work.ipynb).
+подходов к бинарной классификации представлены в jupyter notebook [data analysis and results of work](https://github.com/pavlyuchenkomaria/A-Statistical-Analysis-ML-workflow-of-Titanic/blob/4952ac789334a353a2ff558ff666d2c099c294e0/data_analysis_and_results_of_work.ipynb).
 
 В папке [src](https://github.com/pavlyuchenkomaria/A-Statistical-Analysis-ML-workflow-of-Titanic/tree/main/src) находится код: предобработка данных, эксперименты с различными 
 подходами к классификации и сравнение используемых подходов по отдельности и в ансамблях с разным типом голосования.
